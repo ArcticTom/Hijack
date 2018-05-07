@@ -1,4 +1,5 @@
 // Copyright Tommi Kujanen 2018.
+//Opens and closes (timed) the door via rotation
 
 #include "OpenDoor.h"
 #include "GameFramework/Actor.h"
@@ -51,11 +52,13 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	//if player is on pressure plate and the door is closed, open the door
 	if (PressurePlate->IsOverlappingActor(PressureTriggerer) && !IsOpen) {
 		OpenDoor();
 		LastDoorOpenTime = GetWorld()->GetTimeSeconds();
 	}
 	
+	//close the door after a delay
 	if ((GetWorld()->GetTimeSeconds() - LastDoorOpenTime > DoorCloseDelay) && IsOpen) {
 		CloseDoor();
 	}

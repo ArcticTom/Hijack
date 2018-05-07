@@ -1,4 +1,5 @@
 // Copyright Tommi Kujanen 2018.
+//Report object location in the log
 
 #include "PositionReport.h"
 #include "GameFramework/Actor.h"
