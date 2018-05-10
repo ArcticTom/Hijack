@@ -3,7 +3,7 @@
 
 #include "OpenDoor.h"
 #include "GameFramework/Actor.h"
-
+#define OUT
 
 // Sets default values for this component's properties
 UOpenDoor::UOpenDoor()
@@ -11,8 +11,6 @@ UOpenDoor::UOpenDoor()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
 
@@ -22,8 +20,9 @@ void UOpenDoor::BeginPlay()
 	Super::BeginPlay();
 
 	Owner = GetOwner();
-
-	PressureTriggerer = GetWorld()->GetFirstPlayerController()->GetPawn();
+	if (!PressurePlate) {
+		UE_LOG(LogTemp, Error, TEXT("%s is missing pressure plate."), *GetOwner()->GetName());
+	}
 	
 }
 
@@ -32,7 +31,8 @@ void UOpenDoor::OpenDoor() {
 	//calculate new rotation
 	FRotator NewRotation = FRotator(0.0f, (Owner->GetActorRotation().Yaw + OpenAngle), 0.0f);
 
-	Owner->SetActorRotation(NewRotation);
+	//Owner->SetActorRotation(NewRotation);
+	OnOpenRequest.Broadcast();
 
 	IsOpen = true;
 }
@@ -53,15 +53,33 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	//if player is on pressure plate and the door is closed, open the door
-	if (PressurePlate->IsOverlappingActor(PressureTriggerer) && !IsOpen) {
+	if (GetTotalMassOnPressureTriggerer() > 15.0f && !IsOpen) {
 		OpenDoor();
 		LastDoorOpenTime = GetWorld()->GetTimeSeconds();
 	}
 	
 	//close the door after a delay
-	if ((GetWorld()->GetTimeSeconds() - LastDoorOpenTime > DoorCloseDelay) && IsOpen) {
+	if ((GetWorld()->GetTimeSeconds() - LastDoorOpenTime > DoorCloseDelay) && IsOpen && !(GetTotalMassOnPressureTriggerer() > 15.0f)) {
 		CloseDoor();
 	}
 	
+}
+
+float UOpenDoor::GetTotalMassOnPressureTriggerer() {
+
+	float TotalMass = 0.0f;
+	TArray<AActor*> OverlappingActors;
+
+	if (!PressurePlate) {
+		return TotalMass;
+	}
+	PressurePlate->GetOverlappingActors(OUT OverlappingActors);
+
+	for (const auto* Actor : OverlappingActors) {
+		TotalMass += Actor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+		UE_LOG(LogTemp, Warning, TEXT("%s of weight on pressureplate."), *Actor->GetName());
+	}
+
+	return TotalMass;
 }
 

@@ -36,4 +36,11 @@ private:
 	void Grab();
 	void Press();
 	void Release();
+
+	void FindPhysicsHandleComponent();
+	void SetupInputComponent();
+	const FHitResult GetFirstPhysicsBodyInReach();
+
+	FVector GetLineTraceEnd();
+	FVector GetPlayerLocation();
 };
