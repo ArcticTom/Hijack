@@ -26,41 +26,16 @@ void UOpenDoor::BeginPlay()
 	
 }
 
-void UOpenDoor::OpenDoor() {
-
-	//calculate new rotation
-	FRotator NewRotation = FRotator(0.0f, (Owner->GetActorRotation().Yaw + OpenAngle), 0.0f);
-
-	//Owner->SetActorRotation(NewRotation);
-	OnOpenRequest.Broadcast();
-
-	IsOpen = true;
-}
-
-void UOpenDoor::CloseDoor() {
-
-	//calculate new rotation
-	FRotator NewRotation = FRotator(0.0f, (Owner->GetActorRotation().Yaw + -OpenAngle), 0.0f);
-
-	Owner->SetActorRotation(NewRotation);
-
-	IsOpen = false;
-}
-
 // Called every frame
 void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	//if player is on pressure plate and the door is closed, open the door
-	if (GetTotalMassOnPressureTriggerer() > 15.0f && !IsOpen) {
-		OpenDoor();
-		LastDoorOpenTime = GetWorld()->GetTimeSeconds();
-	}
-	
-	//close the door after a delay
-	if ((GetWorld()->GetTimeSeconds() - LastDoorOpenTime > DoorCloseDelay) && IsOpen && !(GetTotalMassOnPressureTriggerer() > 15.0f)) {
-		CloseDoor();
+	if (GetTotalMassOnPressureTriggerer() > TriggerMass) {
+		OnOpen.Broadcast();
+	} else {
+		OnClose.Broadcast();
 	}
 	
 }
